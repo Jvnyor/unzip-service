@@ -23,7 +23,7 @@ class UnzipServiceTest {
     }
 
     @Test
-    void testUnzipFileSuccess(@TempDir Path tempDir) throws IOException {
+    void givenZipFile_whenUnzipped_thenFileExtractedSuccessfully(@TempDir Path tempDir) throws IOException {
         // Create a temporary zip file
         Path zipPath = tempDir.resolve("test.zip");
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
@@ -46,7 +46,7 @@ class UnzipServiceTest {
     }
 
     @Test
-    void testUnzipFileWithDirectoryException(@TempDir Path tempDir) {
+    void givenZipFileWithDirectory_whenUnzipped_thenIOExceptionThrown(@TempDir Path tempDir) {
         // Assuming the implementation is updated to throw an exception when directories are encountered
         // Create a temporary zip file with a directory
         Path zipPath = tempDir.resolve("testWithDir.zip");
