@@ -88,4 +88,27 @@ class UnzipServiceTest {
 
         assertTrue(exception.getMessage().contains("Entry is outside of the target dir"));
     }
+
+    @Test
+    void givenDirectoryCannotBeCreated_whenUnzipped_thenIOExceptionThrown(@TempDir Path tempDir) throws IOException {
+        // Setup: Create a zip file with one file entry simulating a nested directory structure
+        Path zipPath = tempDir.resolve("test.zip");
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
+            ZipEntry zipEntry = new ZipEntry("nestedDir/testFile.txt");
+            zos.putNextEntry(zipEntry);
+            zos.write("Content".getBytes());
+            zos.closeEntry();
+        }
+
+        // Instead of using a non-existent directory, use a file to ensure mkdirs() fails
+        File outputDir = tempDir.resolve("output").toFile();
+        assertTrue(outputDir.createNewFile()); // Ensure this is a file, not a directory
+
+        // Test: Attempting to unzip should throw an IOException because it cannot create the nested directory
+        IOException exception = assertThrows(IOException.class, () ->
+                unzipService.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
+        );
+
+        assertTrue(exception.getMessage().contains("Failed to create directory"));
+    }
 }
