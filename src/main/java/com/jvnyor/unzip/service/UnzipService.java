@@ -13,6 +13,10 @@ import java.util.zip.ZipOutputStream;
 public class UnzipService {
 
     public void unzipFile(String sourceZipFilePath, String outputDirectoryPath) throws IOException {
+        // First, validate the zip file to ensure it contains no directories.
+        validateZipFile(sourceZipFilePath);
+
+        // If validation passes, proceed to unzip.
         File destDir = new File(outputDirectoryPath);
         byte[] buffer = new byte[1024];
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(sourceZipFilePath))) {
@@ -20,20 +24,27 @@ public class UnzipService {
         }
     }
 
+    private void validateZipFile(String sourceZipFilePath) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(sourceZipFilePath))) {
+            ZipEntry zipEntry = zis.getNextEntry();
+            while (zipEntry != null) {
+                if (zipEntry.isDirectory()) {
+                    throw new IOException("Zip file contains directories, which are not allowed.");
+                }
+                zipEntry = zis.getNextEntry();
+            }
+        }
+    }
+
     private void unzip(ZipInputStream zis, File destDir, byte[] buffer) throws IOException {
         ZipEntry zipEntry = zis.getNextEntry();
         while (zipEntry != null) {
             File newFile = newFile(destDir, zipEntry);
-            if (zipEntry.isDirectory()) {
-                if (!newFile.isDirectory() && !newFile.mkdirs()) {
-                    throw new IOException("Failed to create directory " + newFile);
-                }
-            } else {
+            if (!zipEntry.isDirectory()) {
                 File parent = newFile.getParentFile();
                 if (!parent.isDirectory() && !parent.mkdirs()) {
                     throw new IOException("Failed to create directory " + parent);
                 }
-
                 try (FileOutputStream fos = new FileOutputStream(newFile)) {
                     int len;
                     while ((len = zis.read(buffer)) > 0) {
