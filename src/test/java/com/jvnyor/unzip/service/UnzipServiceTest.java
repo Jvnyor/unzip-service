@@ -67,4 +67,25 @@ class UnzipServiceTest {
         );
         assertEquals("Zip file contains directories, which are not allowed.", exception.getMessage());
     }
+
+    @Test
+    void givenZipEntryOutsideTargetDir_whenUnzipped_thenSecurityExceptionThrown(@TempDir Path tempDir) throws IOException {
+        // Setup: Create a zip file with an entry that has a path traversal attempt
+        Path zipPath = tempDir.resolve("malicious.zip");
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
+            ZipEntry zipEntry = new ZipEntry("../maliciousFile.txt");
+            zos.putNextEntry(zipEntry);
+            zos.write("Malicious content".getBytes());
+            zos.closeEntry();
+        }
+
+        File outputDir = tempDir.resolve("output").toFile();
+
+        // Test: Attempting to unzip should throw an IOException due to security check in newFile method
+        IOException exception = assertThrows(IOException.class, () ->
+                unzipService.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
+        );
+
+        assertTrue(exception.getMessage().contains("Entry is outside of the target dir"));
+    }
 }
