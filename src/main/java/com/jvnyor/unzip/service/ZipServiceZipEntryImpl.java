@@ -10,8 +10,9 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 @Service
-public class UnzipService {
+public class ZipServiceZipEntryImpl implements ZipService {
 
+    @Override
     public void unzipFile(String sourceZipFilePath, String outputDirectoryPath) throws IOException {
         // First, validate the zip file to ensure it contains no directories.
         validateZipFile(sourceZipFilePath);
@@ -22,6 +23,11 @@ public class UnzipService {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(sourceZipFilePath))) {
             unzip(zis, destDir, buffer);
         }
+    }
+
+    @Override
+    public void zipFile(String sourceFilePath, String outputZipFilePath) throws IOException {
+
     }
 
     private void validateZipFile(String sourceZipFilePath) throws IOException {

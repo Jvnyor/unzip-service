@@ -13,13 +13,13 @@ import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UnzipServiceTest {
+class ZipServiceZipEntryImplTest {
 
-    private UnzipService unzipService;
+    private ZipServiceZipEntryImpl unzipServiceZipEntryImpl;
 
     @BeforeEach
     void setUp() {
-        unzipService = new UnzipService();
+        unzipServiceZipEntryImpl = new ZipServiceZipEntryImpl();
     }
 
     @Test
@@ -37,7 +37,7 @@ class UnzipServiceTest {
         File outputDir = tempDir.resolve("output").toFile();
 
         // Test unzipFile
-        unzipService.unzipFile(zipPath.toString(), outputDir.getAbsolutePath());
+        unzipServiceZipEntryImpl.unzipFile(zipPath.toString(), outputDir.getAbsolutePath());
 
         // Verify the file was extracted
         File extractedFile = new File(outputDir, "testFile.txt");
@@ -63,7 +63,7 @@ class UnzipServiceTest {
 
         // Test unzipFile
         IOException exception = assertThrows(IOException.class, () ->
-                unzipService.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
+                unzipServiceZipEntryImpl.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
         );
         assertEquals("Zip file contains directories, which are not allowed.", exception.getMessage());
     }
@@ -83,7 +83,7 @@ class UnzipServiceTest {
 
         // Test: Attempting to unzip should throw an IOException due to security check in newFile method
         IOException exception = assertThrows(IOException.class, () ->
-                unzipService.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
+                unzipServiceZipEntryImpl.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
         );
 
         assertTrue(exception.getMessage().contains("Entry is outside of the target dir"));
@@ -106,7 +106,7 @@ class UnzipServiceTest {
 
         // Test: Attempting to unzip should throw an IOException because it cannot create the nested directory
         IOException exception = assertThrows(IOException.class, () ->
-                unzipService.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
+                unzipServiceZipEntryImpl.unzipFile(zipPath.toString(), outputDir.getAbsolutePath())
         );
 
         assertTrue(exception.getMessage().contains("Failed to create directory"));
