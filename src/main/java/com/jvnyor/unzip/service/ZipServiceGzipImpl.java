@@ -20,19 +20,18 @@ public class ZipServiceGzipImpl implements ZipService {
             while ((len = gzis.read(buffer)) > 0) {
                 out.write(buffer, 0, len);
             }
-        }
+        } // Automatic resource management
     }
 
     @Override
     public void zipFile(String sourceFilePath, String outputGzipFilePath) throws IOException {
-        try (FileInputStream fis = new FileInputStream(sourceFilePath);
-             FileOutputStream fos = new FileOutputStream(outputGzipFilePath);
-             GZIPOutputStream gzos = new GZIPOutputStream(fos)) {
+        try (FileInputStream in = new FileInputStream(sourceFilePath);
+             GZIPOutputStream gzos = new GZIPOutputStream(new FileOutputStream(outputGzipFilePath))) {
             byte[] buffer = new byte[1024];
             int len;
-            while ((len = fis.read(buffer)) > 0) {
+            while ((len = in.read(buffer)) > 0) {
                 gzos.write(buffer, 0, len);
             }
-        }
+        } // Automatic resource management
     }
 }
