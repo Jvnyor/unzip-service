@@ -59,38 +59,30 @@ public class ZipController {
 //        }
 //    }
 
-    @PostMapping("/zip-and-download")
-    public ResponseEntity<?> zipAndDownloadFile(@RequestParam("file") MultipartFile file) throws Exception {
-        File tempFile = Files.createTempFile(null, null).toFile();
-        file.transferTo(tempFile);
-
-        File zippedFile = Files.createTempFile(null, ".gz").toFile();
-        zipService.zipFile(tempFile.getAbsolutePath(), zippedFile.getAbsolutePath());
-
-        byte[] bytes = Files.readAllBytes(zippedFile.toPath());
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/gzip"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zippedFile.getName() + "\"")
-                .body(bytes);
-    }
-
     @PostMapping("/unzip-and-download")
     public ResponseEntity<?> unzipAndDownloadFile(@RequestParam("file") MultipartFile file) throws Exception {
+        // Step 1 & 2: Transfer the uploaded file to a temporary file
         File tempFile = Files.createTempFile(null, ".gz").toFile();
         file.transferTo(tempFile);
 
+        // Step 3 & 4: Unzip the file to another temporary file
         File unzippedFile = Files.createTempFile(null, null).toFile();
         zipService.unzipFile(tempFile.getAbsolutePath(), unzippedFile.getAbsolutePath());
 
+        // Step 5: Determine a meaningful filename for the unzipped content
+        String originalFileName = file.getOriginalFilename();
+        String unzippedFileName = originalFileName != null ? originalFileName.replaceAll("\\.gz$", "") : "unzippedFile";
+
+        // Step 6: Serve the unzipped file for download
         byte[] bytes = Files.readAllBytes(unzippedFile.toPath());
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + unzippedFile.getName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + unzippedFileName + "\"")
                 .body(bytes);
     }
 
-    @PostMapping("/zip-and-download-2")
-    public ResponseEntity<?> zipAndDownloadFile2(@RequestParam("file") MultipartFile file) throws Exception {
+    @PostMapping("/zip-and-download")
+    public ResponseEntity<?> zipAndDownloadFile(@RequestParam("file") MultipartFile file) throws Exception {
         // Extract original file name and extension
         String originalFileName = file.getOriginalFilename();
         if (originalFileName == null || originalFileName.isEmpty()) {
@@ -111,23 +103,5 @@ public class ZipController {
                 .contentType(MediaType.parseMediaType("application/gzip"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zippedFile.getName() + "\"")
                 .body(bytes);
-    }
-
-    @PostMapping("/unzip-read-and-download")
-    public ResponseEntity<?> unzipReadAndDownloadFile(@RequestParam("file") MultipartFile file) throws Exception {
-        // Unzip the file
-        File tempFile = Files.createTempFile(null, ".gz").toFile();
-        file.transferTo(tempFile);
-        File unzippedFile = Files.createTempFile(null, null).toFile();
-        zipService.unzipFile(tempFile.getAbsolutePath(), unzippedFile.getAbsolutePath());
-
-        // Read the unzipped file
-        String content = new String(Files.readAllBytes(unzippedFile.toPath()));
-
-        // Return the content of the unzipped file
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_PLAIN)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + unzippedFile.getName() + "\"")
-                .body(content);
     }
 }
